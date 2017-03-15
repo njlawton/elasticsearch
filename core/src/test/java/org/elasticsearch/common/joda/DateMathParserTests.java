@@ -304,8 +304,15 @@ public class DateMathParserTests extends ESTestCase {
             parser.parse("1234567890123", () -> 42, false, DateTimeZone.forTimeZone(TimeZone.getTimeZone("CET")));
             fail("Expected ElasticsearchParseException");
         } catch(ElasticsearchParseException e) {
-            assertThat(e.getMessage(), containsString("failed to parse date field"));
-            assertThat(e.getMessage(), containsString("with format [epoch_millis]"));
+            assertThat(e.getMessage(), containsString("Format [epoch_millis] only supports UTC time zones"));
+        }
+
+        parser = new DateMathParser(Joda.forPattern("epoch_second"));
+        try {
+            parser.parse("1234567890123", () -> 42, false, DateTimeZone.forTimeZone(TimeZone.getTimeZone("CET")));
+            fail("Expected ElasticsearchParseException");
+        } catch(ElasticsearchParseException e) {
+            assertThat(e.getMessage(), containsString("Format [epoch_second] only supports UTC time zones"));
         }
     }
 }
