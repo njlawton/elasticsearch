@@ -299,26 +299,16 @@ public class DateMathParserTests extends ESTestCase {
     }
 
     public void testThatUnixTimestampMayNotHaveTimeZone() {
-        DateMathParser parser = new DateMathParser(Joda.forPattern("epoch_millis"));
-        try {
-            parser.parse("1234567890123", () -> 42, false, DateTimeZone.forTimeZone(TimeZone.getTimeZone("CET")));
-            fail("Expected ElasticsearchParseException");
-        } catch(ElasticsearchParseException e) {
-            assertThat(e.getMessage(), containsString("Format [epoch_millis] only supports UTC time zones"));
-        }
+        DateMathParser millisParser = new DateMathParser(Joda.forPattern("epoch_millis"));
+        expectThrows(ElasticsearchParseException.class,
+            () -> millisParser.parse("1234567890123", () -> 42, false, DateTimeZone.forTimeZone(TimeZone.getTimeZone("CET"))));
+
+        DateMathParser secondParser = new DateMathParser(Joda.forPattern("epoch_second"));
+        expectThrows(ElasticsearchParseException.class,
+            () -> secondParser.parse("1234567890123", () -> 42, false, DateTimeZone.forTimeZone(TimeZone.getTimeZone("CET"))));
 
         // Explicitly parsing a UTC timestamp is acceptable
-        parser.parse("1234567890123", () -> 42, false, DateTimeZone.forTimeZone(TimeZone.getTimeZone("UTC")));
-
-        parser = new DateMathParser(Joda.forPattern("epoch_second"));
-        try {
-            parser.parse("1234567890123", () -> 42, false, DateTimeZone.forTimeZone(TimeZone.getTimeZone("CET")));
-            fail("Expected ElasticsearchParseException");
-        } catch(ElasticsearchParseException e) {
-            assertThat(e.getMessage(), containsString("Format [epoch_second] only supports UTC time zones"));
-        }
-
-        // Explicitly parsing a UTC timestamp is acceptable
-        parser.parse("1234567890123", () -> 42, false, DateTimeZone.forTimeZone(TimeZone.getTimeZone("UTC")));
+        millisParser.parse("1234567890123", () -> 42, false, DateTimeZone.forTimeZone(TimeZone.getTimeZone("UTC")));
+        secondParser.parse("1234567890123", () -> 42, false, DateTimeZone.forTimeZone(TimeZone.getTimeZone("UTC")));
     }
 }
